@@ -6,6 +6,7 @@ import (
 )
 
 var Channel chan Config
+var Current Config
 
 type Config struct {
 	HostGroups 	[]HostGroup
@@ -33,6 +34,11 @@ func (h *Host) AllTags(hg HostGroup) []string {
 
 func init() {
 	Channel = make(chan Config)
+	go func(cfg *Config) {
+		for {
+			*cfg = <-Channel
+		}
+	}(&Current)
 }
 
 type Protocol uint32

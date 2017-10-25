@@ -10,5 +10,6 @@ hostgroups:
      - name: esk-bbr-2
        address: 8.8.4.4
        protocol: ipv4
+
    tags:
    - foobars

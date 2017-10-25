@@ -11,8 +11,6 @@ import (
 	"github.com/tatsushid/go-fastping"
 )
 
-var _config config.Config
-
 type response struct {
 	host config.Host
 	addr *net.IPAddr
@@ -20,22 +18,16 @@ type response struct {
 }
 
 func Run() {
-	go func() {
-		for {
-			_config = <-config.Channel
-		}
-	}()
-
-	go func() {
+	go func(_config *config.Config) {
 		for {
 			executePings()
 			time.Sleep(time.Second * 10)
 		}
-	}()
+	}(&config.Current)
 }
 
 func executePings() {
-	for _, hostgroup := range _config.HostGroups {
+	for _, hostgroup := range config.Current.HostGroups {
 		for _, host := range hostgroup.Hosts {
 			go pingHost(host, hostgroup)
 		}
