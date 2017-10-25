@@ -1,10 +1,17 @@
 package config
 
+import (
+	"strings"
+	"fmt"
+)
+
 var Channel chan Config
 
 type Config struct {
-	HostGroups []HostGroup
-	HTTPListen string
+	HostGroups 	[]HostGroup
+	HTTPListen 	string
+	MetricPath 	string
+	Loglevel 	string
 }
 
 type HostGroup struct {
@@ -16,6 +23,7 @@ type HostGroup struct {
 type Host struct {
 	Address string
 	Name    string
+	Protocol string
 	Tags    []string
 }
 
@@ -26,3 +34,22 @@ func (h *Host) AllTags(hg HostGroup) []string {
 func init() {
 	Channel = make(chan Config)
 }
+
+type Protocol uint32
+
+func ParseProtocol(protocol string) (Protocol, error) {
+
+	switch strings.ToLower(protocol) {
+		case "ipv4":
+			return IPv4, nil
+		case "ipv6":
+			return IPv6,nil
+	}
+	var l Protocol
+	return l, fmt.Errorf("not a valid protocol: %q", protocol)
+}
+
+const (
+	IPv4 Protocol = iota
+	IPv6
+)

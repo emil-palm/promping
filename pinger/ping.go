@@ -8,6 +8,7 @@ import (
 	_ "github.com/tatsushid/go-fastping"
 	"net"
 	"time"
+	"github.com/tatsushid/go-fastping"
 )
 
 var _config config.Config
@@ -34,41 +35,60 @@ func Run() {
 }
 
 func executePings() {
-	for _, hostgrps := range _config.HostGroups {
-		responseChannel := make(chan response, len(hostgrps.Hosts))
-		responsesRecieved := 0
-		responsesExpected := len(hostgrps.Hosts)
-		go func() {
-			for {
-				select {
-				case _resp := <-responseChannel:
-
-					responsesRecieved += 1
-					if responsesRecieved == responsesExpected {
-						goto done
-					}
-				}
-			}
-		done: // Just exit this gofunc
-		}()
-		for _, host := range hostgrps.Hosts {
-			go pingHost(host, responseChannel)
+	for _, hostgroup := range _config.HostGroups {
+		for _, host := range hostgroup.Hosts {
+			go pingHost(host, hostgroup)
 		}
 	}
 }
 
-func pingHost(host config.Host, responseChannel chan response) {
+func pingHost(host config.Host, hostgrp config.HostGroup) {
 	log.Debugf("Pinging %s", host.Name)
 	// Execute ping
 	time.Sleep(time.Second)
-	responseChannel <- response{host, nil, 0}
+	pinger := fastping.NewPinger()
+
+	var network string
+	netAddress := net.ParseIP(host.Address)
+	if netAddress != nil {
+
+		if netAddress.To4() != nil {
+			network = "ip4:icmp"
+		} else {
+			network = "ip6:icmp"
+		}
+	} else {
+		if proto, _ := config.ParseProtocol(host.Protocol); proto == config.IPv6 {
+			network = "ip6:icmp"
+		} else {
+			network = "ip4:icmp"
+		}
+	}
+	log.Debugf("%s", network)
+	ra, err := net.ResolveIPAddr(network, host.Address)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	pinger.AddIPAddr(ra)
+	pinger.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
+		log.Debugf("IP Addr: %s receive, RTT: %v", addr.String(), rtt)
+	}
+	pinger.OnIdle = func() {
+		log.Debugf("Finished %s", host.Name)
+	}
+	err = pinger.Run()
+	if err != nil {
+		log.Error(err)
+	}
 }
 
 /*
 func RunPinger(interval int) error {
 
 	// create a new pinger
-	p := fastping.NewPinger()
+	p :=
 
 	// create some interfaces to store results
 	results := make(map[string]*response)

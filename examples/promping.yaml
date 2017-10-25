@@ -5,8 +5,10 @@ hostgroups:
  - name: bbrs
    hosts:
      - name: esk-bbr-1
-       address: esk-bbr-1.mgmt.comhem.com
+       address: 8.8.8.8
+       protocol: ipv4
      - name: esk-bbr-2
-       address: esk-bbr-2.mgmt.comhem.com
+       address: 8.8.4.4
+       protocol: ipv4
    tags:
    - foobars

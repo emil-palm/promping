@@ -27,14 +27,19 @@ func init() {
 	log.SetOutput(os.Stdout)
 
 	// Only log the warning severity or above.
-	log.SetLevel(log.DebugLevel)
+
 
 	// Configure flag support
-
 	pflag.String("config", "promping", "configuration file to use")
 	pflag.String("httplisten", ":8080", "Address to expose http server on")
+	pflag.String("loglevel", "debug", "Loglevel to use")
 	viper.BindPFlags(pflag.CommandLine)
 	pflag.Parse()
+
+	// Configure viper options
+	viper.SetDefault("metricpath", "ping")
+	viper.SetDefault("httplisten", ":8080")
+	viper.SetDefault("loglevel", "warn")
 
 	// Setup viper for configuration handling
 	// optionally look for config in the working directory
@@ -45,6 +50,14 @@ func init() {
 		viper.AddConfigPath("/etc/promping/")          // path to look for the config file in
 		viper.AddConfigPath("$HOME/.promping")         // call multiple times to add many search paths
 		viper.AddConfigPath(".")
+	}
+
+	if loglevel, err := pflag.CommandLine.GetString("loglevel"); err == nil {
+		level, err := log.ParseLevel(loglevel)
+		if err != nil {
+			log.Panic(err)
+		}
+		log.SetLevel(level)
 	}
 }
 
