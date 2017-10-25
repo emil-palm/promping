@@ -17,7 +17,10 @@ import (
 	  "github.com/jaxxstorm/graphping/ping"
 	  "github.com/prometheus/client_golang/prometheus/promhttp"
 	  "net/http"
-	*/)
+	*/
+	"github.com/mrevilme/promping/prometheus"
+	"net/http"
+)
 
 func init() {
 	// Log as JSON instead of the default ASCII formatter.
@@ -37,7 +40,7 @@ func init() {
 	pflag.Parse()
 
 	// Configure viper options
-	viper.SetDefault("metricpath", "ping")
+	viper.SetDefault("metricpath", "/ping")
 	viper.SetDefault("httplisten", ":8080")
 	viper.SetDefault("loglevel", "warn")
 
@@ -82,6 +85,8 @@ func main() {
 
 	log.Debug("Starting pinger")
 	pinger.Run()
+	prometheus.Run()
+	http.ListenAndServe(config.Current.HTTPListen,nil)
 
 	// Waiting for interupt
 	c := make(chan os.Signal, 1)

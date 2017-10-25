@@ -1,4 +1,4 @@
-httplisten: localhost:8080
+httplisten: localhost:8090
 apikeys:
   - foobar
 hostgroups:
@@ -8,8 +8,9 @@ hostgroups:
        address: 8.8.8.8
        protocol: ipv4
      - name: esk-bbr-2
-       address: 8.8.4.4
+       address: 151.101.129.140
        protocol: ipv4
-
+       tags:
+        - foo
    tags:
    - foobars

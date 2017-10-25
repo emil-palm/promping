@@ -1,11 +1,9 @@
 package pinger
 
 import (
-	_ "errors"
-	_ "fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/mrevilme/promping/config"
-	_ "github.com/tatsushid/go-fastping"
+	"github.com/mrevilme/promping/prometheus"
 	"net"
 	"time"
 	"github.com/tatsushid/go-fastping"
@@ -29,15 +27,15 @@ func Run() {
 func executePings() {
 	for _, hostgroup := range config.Current.HostGroups {
 		for _, host := range hostgroup.Hosts {
-			go pingHost(host, hostgroup)
+			host.HostGroup = &hostgroup
+			go pingHost(host)
 		}
 	}
 }
 
-func pingHost(host config.Host, hostgrp config.HostGroup) {
+func pingHost(host config.Host) {
 	log.Debugf("Pinging %s", host.Name)
 	// Execute ping
-	time.Sleep(time.Second)
 	pinger := fastping.NewPinger()
 
 	var network string
@@ -56,7 +54,6 @@ func pingHost(host config.Host, hostgrp config.HostGroup) {
 			network = "ip4:icmp"
 		}
 	}
-	log.Debugf("%s", network)
 	ra, err := net.ResolveIPAddr(network, host.Address)
 	if err != nil {
 		log.Error(err)
@@ -64,11 +61,21 @@ func pingHost(host config.Host, hostgrp config.HostGroup) {
 	}
 
 	pinger.AddIPAddr(ra)
-	pinger.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
-		log.Debugf("IP Addr: %s receive, RTT: %v", addr.String(), rtt)
+	maxTTLExceeded := true
+	var rtt time.Duration
+	pinger.OnRecv = func(addr *net.IPAddr, _rtt time.Duration) {
+		rtt = _rtt
+		maxTTLExceeded = false
+		log.Debugf("IP Addr: %s receive, RTT: %v", addr.String(), _rtt)
 	}
 	pinger.OnIdle = func() {
-		log.Debugf("Finished %s", host.Name)
+		if maxTTLExceeded == false {
+			log.Infof("Finished %s with RTT: %v", host.Name, rtt)
+			gauge := prometheus.PingGaugeForHost(host)
+			gauge.Set(float64(rtt.Seconds()));
+		} else {
+			log.Infof("Timeout %s", host.Name)
+		}
 	}
 	err = pinger.Run()
 	if err != nil {

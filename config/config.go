@@ -26,10 +26,11 @@ type Host struct {
 	Name    string
 	Protocol string
 	Tags    []string
+	HostGroup *HostGroup
 }
 
-func (h *Host) AllTags(hg HostGroup) []string {
-	return append(h.Tags, hg.Tags...)
+func (h *Host) AllTags() []string {
+	return append(h.Tags, h.HostGroup.Tags...)
 }
 
 func init() {
