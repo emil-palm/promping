@@ -1,0 +1,12 @@
+httplisten: localhost:8080
+apikeys:
+  - foobar
+hostgroups:
+ - name: bbrs
+   hosts:
+     - name: esk-bbr-1
+       address: esk-bbr-1.mgmt.comhem.com
+     - name: esk-bbr-2
+       address: esk-bbr-2.mgmt.comhem.com
+   tags:
+   - foobars
