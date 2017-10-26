@@ -10,9 +10,25 @@ import (
 )
 
 func init() {
+	api.Router.HandleFunc("/hostgroups/{hostgroup_name}/hosts", ListHostsInHostGroup).Methods("GET")
 	api.Router.HandleFunc("/hostgroups/{hostgroup_name}/host", AddHostToHostGroup).Methods("PUT")
 	api.Router.HandleFunc("/hostgroups/{hostgroup_name}/host/{name}", DeleteHostFromHostGroup).Methods("DELETE")
 	api.Router.HandleFunc("/hostgroups/{hostgroup_name}/hosts", SetHostsInHostGroup).Methods("PATCH")
+}
+
+func ListHostsInHostGroup(w http.ResponseWriter, r *http.Request) {
+	var hostGroup config.HostGroup
+	for _, hostGroup = range config.Current.HostGroups {
+		if hostGroup.Name == mux.Vars(r)["hostgroup_name"] {
+			json.NewEncoder(w).Encode(hostGroup.Hosts)
+			return
+		}
+	}
+
+	if hostGroup.Name == "" {
+		http.Error(w, fmt.Sprintf("Hostgroup '%s' doesn't exist", mux.Vars(r)["hostgroup_name"]), 404)
+		return
+	}
 }
 
 func AddHostToHostGroup(w http.ResponseWriter, r *http.Request) {
@@ -26,7 +42,7 @@ func AddHostToHostGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if hostGroup.Name == "" {
-		http.Error(w, fmt.Sprintf("Hostgroup '%s' doesn't exist", mux.Vars(r)["hostgroup_name"]), 400)
+		http.Error(w, fmt.Sprintf("Hostgroup '%s' doesn't exist", mux.Vars(r)["hostgroup_name"]), 404)
 		return
 	}
 
@@ -73,7 +89,7 @@ func DeleteHostFromHostGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if hostGroup.Name == "" {
-		http.Error(w, fmt.Sprintf("Hostgroup '%s' doesn't exist", mux.Vars(r)["hostgroup_name"]), 400)
+		http.Error(w, fmt.Sprintf("Hostgroup '%s' doesn't exist", mux.Vars(r)["hostgroup_name"]), 404)
 		return
 	}
 
@@ -87,7 +103,7 @@ func DeleteHostFromHostGroup(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	http.Error(w, fmt.Sprintf("Host with name '%s' is not present in hostgroup, use PATCH or PUT", mux.Vars(r)["name"]), 400)
+	http.Error(w, fmt.Sprintf("Host with name '%s' is not present in hostgroup, use PATCH or PUT", mux.Vars(r)["name"]), 404)
 	return
 }
 
@@ -102,7 +118,7 @@ func SetHostsInHostGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if hostGroup.Name == "" {
-		http.Error(w, fmt.Sprintf("Hostgroup '%s' doesn't exist", mux.Vars(r)["hostgroup_name"]), 400)
+		http.Error(w, fmt.Sprintf("Hostgroup '%s' doesn't exist", mux.Vars(r)["hostgroup_name"]), 404)
 		return
 	}
 

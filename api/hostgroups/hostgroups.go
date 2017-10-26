@@ -3,7 +3,6 @@ package hostgroups
 import (
 	"encoding/json"
 	"fmt"
-	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/mrevilme/promping/api"
 	"github.com/mrevilme/promping/config"
@@ -13,17 +12,22 @@ import (
 func init() {
 	api.Router.HandleFunc("/hostgroups", GetHostGroups).Methods("GET")
 	api.Router.HandleFunc("/hostgroups", AddHostGroup).Methods("PUT")
-	api.Router.HandleFunc("/hostgroups/{name}", DeleteHostGroup).Methods("DELETE")
-	api.Router.HandleFunc("/hostgroups/{hostgroup_name}/host", AddHostToHostGroup).Methods("PUT")
+	api.Router.HandleFunc("/hostgroups/{hostgroup_name}", DeleteHostGroup).Methods("DELETE")
 	api.Router.HandleFunc("/hostgroups/{hostgroup_name}", PatchHostGroup).Methods("PATCH")
 }
 
 func DeleteHostGroup(w http.ResponseWriter, r *http.Request) {
 	for idx, hostGroup := range config.Current.HostGroups {
-		if hostGroup.Name == mux.Vars(r)["name"] {
-			log.Debugf("Removing %s at index: %d", hostGroup.Name, idx)
+		if hostGroup.Name == mux.Vars(r)["hostgroup_name"] {
+			config.Current.HostGroups = append(config.Current.HostGroups[:idx], config.Current.HostGroups[idx+1:]...)
+			config.Current.Save()
+			json.NewEncoder(w).Encode(&config.Current.HostGroups)
+			return
 		}
 	}
+
+	http.Error(w, fmt.Sprintf("Hostgroup '%s' doesn't exist", mux.Vars(r)["hostgroup_name"]), 404)
+	return
 }
 
 func AddHostGroup(w http.ResponseWriter, r *http.Request) {
