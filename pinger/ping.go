@@ -4,16 +4,10 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/mrevilme/promping/config"
 	"github.com/mrevilme/promping/prometheus"
+	"github.com/tatsushid/go-fastping"
 	"net"
 	"time"
-	"github.com/tatsushid/go-fastping"
 )
-
-type response struct {
-	host config.Host
-	addr *net.IPAddr
-	rtt  time.Duration
-}
 
 func Run() {
 	go func(_config *config.Config) {
@@ -72,7 +66,7 @@ func pingHost(host config.Host) {
 		if maxTTLExceeded == false {
 			log.Infof("Finished %s with RTT: %v", host.Name, rtt)
 			gauge := prometheus.PingGaugeForHost(host)
-			gauge.Set(float64(rtt.Seconds()));
+			gauge.Set(float64(rtt.Seconds()))
 		} else {
 			log.Infof("Timeout %s", host.Name)
 		}
