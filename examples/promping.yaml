@@ -2,7 +2,7 @@ httplisten: localhost:8090
 apikeys:
   - foobar
 hostgroups:
- - name: bbrs
+ - name: BBR
    hosts:
      - name: esk-bbr-1
        address: 8.8.8.8
@@ -10,7 +10,5 @@ hostgroups:
      - name: esk-bbr-2
        address: 151.101.129.140
        protocol: ipv4
-       tags:
-        - foo
    tags:
    - foobars

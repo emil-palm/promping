@@ -30,7 +30,7 @@ type Host struct {
 }
 
 func (h *Host) AllTags() []string {
-	return append(h.Tags, h.HostGroup.Tags...)
+	return append(append(h.Tags, h.HostGroup.Tags...),h.HostGroup.Name)
 }
 
 func init() {

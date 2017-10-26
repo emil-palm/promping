@@ -5,6 +5,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/client_golang/prometheus"
 	"net/http"
+	_ "strings"
+	"reflect"
 	"strings"
 )
 
@@ -17,9 +19,14 @@ var hostGauges []hostGauge
 
 
 func PingGaugeForHost(host config.Host) (prometheus.Gauge) {
-	for _, gauge := range hostGauges {
+	for idx, gauge := range hostGauges {
 		if gauge.Host.Name == host.Name {
-			return gauge.Gauge
+			if reflect.DeepEqual(gauge.Host.AllTags(), host.AllTags()) {
+				return gauge.Gauge
+			} else {
+				prometheus.Unregister(gauge.Gauge)
+				hostGauges = append(hostGauges[:idx], hostGauges[idx+1:]...)
+		  	}
 		}
 	}
 	// We didn't find any gauge so we create a new, append it to the cache and return it.
