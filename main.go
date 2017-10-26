@@ -5,6 +5,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsnotify/fsnotify"
 	"github.com/mrevilme/promping/api"
+	_ "github.com/mrevilme/promping/api/apikeys"
 	_ "github.com/mrevilme/promping/api/hostgroups"
 	"github.com/mrevilme/promping/config"
 	"github.com/mrevilme/promping/pinger"

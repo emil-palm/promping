@@ -19,6 +19,7 @@ type Config struct {
 	HTTPListen string
 	MetricPath string
 	Loglevel   string
+	ApiKeys    []string
 }
 
 func (c *Config) Save() {

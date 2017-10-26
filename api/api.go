@@ -3,7 +3,7 @@ package api
 import (
 	"fmt"
 	"github.com/gorilla/mux"
-	_ "github.com/mrevilme/promping/config"
+	"github.com/mrevilme/promping/config"
 	"io"
 	"net/http"
 	"strings"
@@ -13,6 +13,21 @@ var Router *mux.Router
 
 func init() {
 	Router = mux.NewRouter().PathPrefix("/api/").Subrouter()
+}
+
+func AuthMiddleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if key := r.Header.Get("X-API-KEY"); len(key) > 0 {
+			for _, validKey := range config.Current.ApiKeys {
+				if validKey == key {
+					h.ServeHTTP(w, r)
+					return
+				}
+			}
+		}
+
+		http.Error(w, "Unauthorized", 401)
+	})
 }
 
 func catchAllHandler(w http.ResponseWriter, r *http.Request) {
@@ -44,5 +59,5 @@ func catchAllHandler(w http.ResponseWriter, r *http.Request) {
 }
 func Run() {
 	Router.HandleFunc("/", catchAllHandler).Methods("GET")
-	http.Handle("/api/", Router)
+	http.Handle("/api/", AuthMiddleware(Router))
 }
