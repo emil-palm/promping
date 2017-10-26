@@ -6,6 +6,7 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fatih/structs"
+	"github.com/imdario/mergo"
 	"github.com/theherk/viper"
 	"strings"
 )
@@ -25,7 +26,6 @@ func (c *Config) Save() {
 	var buf bytes.Buffer
 	enc := json.NewEncoder(&buf)
 	enc.Encode(_map)
-
 	err := viper.MergeConfig(&buf)
 	if err != nil {
 		log.Panic(err)
@@ -37,19 +37,31 @@ func (c *Config) Save() {
 type HostGroup struct {
 	Name  string
 	Hosts []Host
-	Tags  []string
+	Tags  []string `json:",omitempty" mapstructure:","`
+}
+
+func (hg *HostGroup) Merge(hostGroup HostGroup) error {
+	return mergo.Merge(hg, hostGroup)
 }
 
 type Host struct {
 	Address   string
 	Name      string
-	Protocol  string
-	Tags      []string
-	HostGroup *HostGroup
+	Protocol  string    `json:",omitempty" mapstructure:","`
+	Tags      []string  `json:",omitempty" mapstructure:","`
+	hostGroup HostGroup `json:"-"`
 }
 
 func (h *Host) AllTags() []string {
-	return append(append(h.Tags, h.HostGroup.Tags...), h.HostGroup.Name)
+	return append(append(h.Tags, h.hostGroup.Tags...), h.hostGroup.Name)
+}
+
+func (h *Host) SetHostGroup(hostGroup HostGroup) {
+	h.hostGroup = hostGroup
+}
+
+func (h *Host) Merge(host Host) error {
+	return mergo.Merge(h, host)
 }
 
 func init() {

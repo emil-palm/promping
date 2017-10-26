@@ -22,7 +22,7 @@ func Run() {
 func executePings() {
 	for _, hostgroup := range config.Current.HostGroups {
 		for _, host := range hostgroup.Hosts {
-			host.HostGroup = &hostgroup
+			host.SetHostGroup(hostgroup)
 			go pingHost(host)
 		}
 	}
