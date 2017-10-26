@@ -9,6 +9,7 @@ import (
 	"github.com/imdario/mergo"
 	"github.com/theherk/viper"
 	"strings"
+	"time"
 )
 
 var Channel chan Config
@@ -20,6 +21,8 @@ type Config struct {
 	MetricPath string
 	Loglevel   string
 	ApiKeys    []string
+	Interval   int
+	Workers    int
 }
 
 func (c *Config) Save() {
@@ -39,6 +42,7 @@ type HostGroup struct {
 	Name  string
 	Hosts []Host
 	Tags  []string `json:",omitempty" mapstructure:","`
+	Interval int
 }
 
 func (hg *HostGroup) Merge(hostGroup HostGroup) error {
@@ -50,7 +54,9 @@ type Host struct {
 	Name      string
 	Protocol  string    `json:",omitempty" mapstructure:","`
 	Tags      []string  `json:",omitempty" mapstructure:","`
+	Interval  int
 	hostGroup HostGroup `json:"-"`
+	lastPoll  time.Time `json:",omitempty" mapstructure:","`
 }
 
 func (h *Host) AllTags() []string {
@@ -59,6 +65,26 @@ func (h *Host) AllTags() []string {
 
 func (h *Host) SetHostGroup(hostGroup HostGroup) {
 	h.hostGroup = hostGroup
+}
+
+func (h *Host) SetLostPoll(lastUpdate time.Time) {
+	h.lastPoll = lastUpdate
+}
+
+func (h *Host) ShouldUpdate() bool {
+	if h.lastPoll.IsZero() {
+		return true
+	}
+	var interval time.Duration = time.Duration(Current.Interval)*time.Second
+
+	if time.Duration(h.Interval) > 0 {
+		interval = time.Duration(h.Interval)*time.Second
+	} else if time.Duration(h.hostGroup.Interval) > interval {
+		interval = time.Duration(h.hostGroup.Interval)*time.Second
+	}
+
+	log.Warnf("%s", h.lastPoll)
+	return time.Now().Sub(h.lastPoll) > interval
 }
 
 func (h *Host) Merge(host Host) error {

@@ -74,11 +74,11 @@ func PingGaugeForHost(host config.Host) *HostGauge {
 			Help:        "Standard deviation of the RTT",
 		}),
 	}
-	prometheus.MustRegister(gauge.PacketLossGauage)
-	prometheus.MustRegister(gauge.MinRTTGauge)
-	prometheus.MustRegister(gauge.MaxRTTGauge)
-	prometheus.MustRegister(gauge.AvgRTTGauge)
-	prometheus.MustRegister(gauge.StdDevRTTGauge)
+	prometheus.Register(gauge.PacketLossGauage)
+	prometheus.Register(gauge.MinRTTGauge)
+	prometheus.Register(gauge.MaxRTTGauge)
+	prometheus.Register(gauge.AvgRTTGauge)
+	prometheus.Register(gauge.StdDevRTTGauge)
 	hostGauges = append(hostGauges, gauge)
 	return &gauge
 }

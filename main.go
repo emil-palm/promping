@@ -39,6 +39,8 @@ func init() {
 	viper.SetDefault("metricpath", "/ping")
 	viper.SetDefault("httplisten", ":8080")
 	viper.SetDefault("loglevel", "warn")
+	viper.SetDefault("workers", 25)
+	viper.SetDefault("interval", 10)
 
 	// Setup viper for configuration handling
 	// optionally look for config in the working directory
