@@ -4,12 +4,14 @@ import (
 	"fmt"
 	log "github.com/Sirupsen/logrus"
 	"github.com/fsnotify/fsnotify"
+	"github.com/mrevilme/promping/api"
+	_ "github.com/mrevilme/promping/api/hostgroups"
 	"github.com/mrevilme/promping/config"
 	"github.com/mrevilme/promping/pinger"
 	"github.com/mrevilme/promping/prometheus"
 	_ "github.com/mrevilme/promping/prometheus"
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
+	"github.com/theherk/viper"
 	"net/http"
 	"os"
 	"os/signal"
@@ -85,6 +87,7 @@ func main() {
 	log.Debug("Starting pinger")
 	pinger.Run()
 	prometheus.Run()
+	api.Run()
 	http.ListenAndServe(config.Current.HTTPListen, nil)
 
 	// Waiting for interupt

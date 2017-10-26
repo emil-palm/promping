@@ -86,5 +86,3 @@ func PingGaugeForHost(host config.Host) *HostGauge {
 func Run() {
 	http.Handle(config.Current.MetricPath, promhttp.Handler())
 }
-
-//var Prom
