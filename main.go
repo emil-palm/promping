@@ -6,20 +6,14 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/mrevilme/promping/config"
 	"github.com/mrevilme/promping/pinger"
+	"github.com/mrevilme/promping/prometheus"
 	_ "github.com/mrevilme/promping/prometheus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	/*
-	  "github.com/jaxxstorm/graphping/config"
-	  "github.com/jaxxstorm/graphping/ping"
-	  "github.com/prometheus/client_golang/prometheus/promhttp"
-	  "net/http"
-	*/
-	"github.com/mrevilme/promping/prometheus"
-	"net/http"
 )
 
 func init() {
@@ -30,7 +24,6 @@ func init() {
 	log.SetOutput(os.Stdout)
 
 	// Only log the warning severity or above.
-
 
 	// Configure flag support
 	pflag.String("config", "promping", "configuration file to use")
@@ -83,10 +76,16 @@ func main() {
 		readConfig()
 	})
 
+	for {
+		if config.Current.MetricPath != "" {
+			break
+		}
+	}
+
 	log.Debug("Starting pinger")
 	pinger.Run()
 	prometheus.Run()
-	http.ListenAndServe(config.Current.HTTPListen,nil)
+	http.ListenAndServe(config.Current.HTTPListen, nil)
 
 	// Waiting for interupt
 	c := make(chan os.Signal, 1)
